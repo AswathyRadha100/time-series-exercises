@@ -13,6 +13,9 @@
 # ---
 
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
 
 
 def prepare_store(df):
@@ -30,7 +33,8 @@ def prepare_store(df):
         DataFrame: The prepared DataFrame.
     """
     # Convert the sale date into a datetime
-    df.sale_date = pd.to_datetime(df.sale_date, format='%a, %d %b %Y')
+    df.sale_date = pd.to_datetime(df.sale_date, format='%Y-%m-%d')
+    #df.sale_date = pd.to_datetime(df.sale_date, format='%a, %d %b %Y')
     # Set the index as the new datetime value
     df = df.set_index('sale_date')
     # Extract the month value (name of month)
@@ -40,6 +44,76 @@ def prepare_store(df):
     # Calculate the total sales
     df['sales_total'] = df.sale_amount * df.item_price
     return df
+
+
+def prep_germany_data(df):
+    '''
+    Takes in a dataframe, coverts Date to DateTime format and makes it the index, produces histograms 
+    of all variables, renames "Wind+Solar" to the more python-friendly "WindSolar", fills the abundant 
+    nulls/NaNs with 0, and adds the columns 'month' and 'year'. We take a look at the amended dataframe
+    and the dataframe is returned.
+    '''
+    # Convert date to datetime for time series analysis
+    df.Date = pd.to_datetime(df.Date)
+    
+    # Histogram of Consumption
+    df.Consumption.hist()
+    plt.title('Consumption')
+    plt.show()
+    
+    # Histogram of Wind
+    df.Wind.hist()
+    plt.title('Wind')
+    plt.show()
+    
+    # Histogram of Solar
+    df.Solar.hist()
+    plt.title('Solar')
+    plt.show()
+    
+    # Histogram of Solar
+    df['Wind+Solar'].hist()
+    plt.title('WindSolar')
+    plt.show()
+    
+    # Rename column to python ok type
+    df = df.rename(columns={'Wind+Solar': 'WindSolar'})
+    
+    # Fill null values with 0
+    df = df.fillna(0)
+    
+    # Set date as index for time series analysis
+    df = df.set_index('Date').sort_index()
+    
+    # add columns to df
+    df['month'] = df.index.month
+    df['year'] = df.index.year
+    
+    print(df.head())
+    
+    return df
+
+
+def display_numeric_column_histograms(data_frame):
+    """
+    Display histograms for numeric columns in a DataFrame with three colors.
+
+    Args:
+    data_frame (DataFrame): The DataFrame to visualize.
+
+    Returns:
+    None(prints to console)
+    """
+    numeric_columns = data_frame.select_dtypes(exclude=["object", "category"]).columns.to_list()
+    # Define any number of colors for the histogram bars
+    colors = ["#FFBF00"]
+    for i, column in enumerate(numeric_columns):
+        # Create a histogram for each numeric column with two colors
+        figure, axis = plt.subplots(figsize=(10, 3))
+        sns.histplot(data_frame, x=column, ax=axis, color=colors[i % len(colors)])
+        axis.set_title(f"Histogram of {column}")
+        plt.show()
+
 
 
 def prepare_ops(df):
@@ -65,6 +139,3 @@ def prepare_ops(df):
     df['year'] = df.index.year
     df = df.fillna(0)
     return df
-
-
-
